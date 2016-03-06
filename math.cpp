@@ -1,5 +1,7 @@
 #include <math.h>
 #include "net.h"
+#include <iostream>
+using namespace std;
 
 float sigmoid(float x){
     return 1/(1+exp(-x));
@@ -19,8 +21,8 @@ float activation(float x, int type){
                    break;
         case SIGM_DER: res = sigmoid(x);
                        return res*(1-res);
-        case TANH_DER: //TODO
-                       break;
+        case TANH_DER: res = tanh(x);
+                       return (1-res*res);
     }
 }
 

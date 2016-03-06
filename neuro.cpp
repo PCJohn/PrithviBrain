@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdlib.h>
 #include <time.h>
 #include "net.h"
@@ -16,6 +17,7 @@ Net::Net(){
     del_f = new float*[MAX_LAYERS];
     in_len = 0; out_len = 0;
     lrate = 0.01;
+    total_error = 0;
     srand(time(NULL));
 }
 
@@ -51,13 +53,20 @@ void Net::add_layer(int len, int bias_mode, int type){
 }
 
 float * Net::mul(float ** w, int T, int r, int c, float * vec){
-    float * res = new float[r];
-    for(int i = 0; i < r; i++){
-        res[i] = 0;
-        for(int j = 0; j < c; j++){
-            if(T == FEED)
+    float * res;
+    if(T == FEED){
+        res = new float[r];
+        for(int i = 0; i < r; i++){
+            res[i] = 0;
+            for(int j = 0; j < c; j++)
                 res[i] += w[i][j]*vec[j];
-            else if(T == REV)
+        }
+    }
+    else if(T == REV){
+        res = new float[c];
+        for(int i = 0; i < c; i++){
+            res[i] = 0;
+            for(int j = 0; j < r; j++)
                 res[i] += w[j][i]*vec[j];
         }
     }
@@ -83,33 +92,32 @@ float * Net::feed(float * input){
 //Add one input for training
 void Net::add_train(float * input, float * target){
     float * res = feed(input);
+    //cout<<*input<<" -- "<<*res<<" -- "<<*target<<" -- "<<(target[0]-res[0])*(target[0]-res[0])<<endl;
     for(int i = lay_count-1; i >= 0; i--){
         if(i == lay_count-1){
             del_in[i] = new float[out_len];
-            for(int j = 0; j < out_len; j++)
-                del_in[i][j] = (res[j]-target[j])*activation(fan_in[i][j],lay_type[i]+DER);
+            for(int j = 0; j < out_len; j++){
+                float diff = (target[j]-res[j]);
+                del_in[i][j] = diff*activation(fan_in[i][j],lay_type[i]+DER);
+                total_error += diff*diff;
+            }
             continue;
         }
-        del_in[i] = mul(wt[i],REV,node_count[i],node_count[i+1],del_in[i+1]);
+        del_in[i] = mul(wt[i],REV,node_count[i+1],node_count[i],del_in[i+1]);
         for(int j = 0; j < node_count[i+1]; j++){
-            for(int k = 0; k < node_count[i]; k++)
-                del_w[i][j][k] += lrate*del_in[i][k];//TODO;
+            for(int k = 0; k < node_count[i]; k++){
+                del_w[i][j][k] += lrate*fan_f[i][k]*del_in[i+1][j]*activation(fan_in[i+1][j],lay_type[i+1]+DER);
+            }
         }
     }
 }
 
-int Net::get_in_len(){
-    return in_len;
-}
-
-int Net::get_out_len(){
-    return out_len;
-}
-
-void Net::set_init(int type){
-    init_type = type;
-}
-
-void Net::set_learn_rate(float rate){
-    lrate = rate;
+//Update weights
+void Net::update_wt(){
+    for(int i = 0; i < lay_count-1; i++)
+        for(int j = 0; j < node_count[i+1]; j++)
+            for(int k = 0; k < node_count[i]; k++){
+                wt[i][j][k] += del_w[i][j][k];
+                del_w[i][j][k] = 0;
+            }
 }

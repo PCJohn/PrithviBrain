@@ -1,53 +1,81 @@
 #include <iostream>
 #include <fstream>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include "net.h"
 using namespace std;
 
-void train(Net net, char * path, char * dest, int batch_size, float learn_rate, int save_part, int verbose){
+/*char * concat(int num,...){
+	va_list strings;
+	char * conc;
+	int i;
+
+	va_start(strings, num);
+	conc = (char *)malloc(MAX_PATH_LEN+1);
+
+	for(i = 0 ; i < num; i++)
+		strcat(conc, va_arg(strings, char *));
+
+	va_end(strings);
+	return conc;
+}*/
+
+void Net::train(char * path,
+                char * dest,
+                int minibatch_size,
+                float learn_rate,
+                int save_part,
+                bool verbose,
+                int max_epochs){
     ifstream in(path);
     ofstream out(dest);
     char * line = new char[10000];
     float * inp = new float[100000];
-    int in_len, out_len, pos = 0, len, i = 0;
+    int pos = 0, len, i = 0, N = 0, epoch;
 
-    //Read dimensions
-    in>>line;
-    in_len = atoi(line);
-    in>>line;
-    out_len = atoi(line);
-    len = in_len+out_len;
-    cout<<in_len<<" -- "<<out_len<<endl;
+    lrate = learn_rate;
+    epoch = 0;
+    while(1){
+        in.clear();
+        in.seekg(0,ios::beg);
+        //Read dimensions
+        in>>line;
+        in_len = atoi(line);
+        in>>line;
+        out_len = atoi(line);
+        len = in_len+out_len;
 
-    //net.lrate = learn_rate;
-    while(in>>line){
-        int epoch = 0;
-        *inp++ = atof(line);
-        pos++;
-        if(pos < len)
-            continue;
-        pos = 0;
-        inp -= len;
-        //Run backprop
-        net.add_train(inp,target);
-        //Batch weight update
-        i = (i+1)%batch_size;
-        if(i == 0){
-            for(int n = 0; n < net.lay_count-1; n++)
-                for(int j = 0; j < net.node_count[n+1]; j++)
-                    for(int k = 0; k < net.node_count[n]; k++){
-                        net.wt[n][j][k] += del_w[n][j][k];
-                        net.del_w[n][j][k] = 0;
-                    }
-            epoch++;
-            if(verbose){
-                cout<<"____________Epoch "<<epoch<<"_____________"<<endl;
-                cout<<"Total error: "<<net.total_error()<<endl;
-                cout<<"__________________________________________"<<endl;
+        N = 0;
+        total_error = 0;
+        while(in>>line){
+            *inp++ = atof(line);
+            pos++;
+            if(pos < len)
+                continue;
+            pos = 0;
+            inp -= len;
+            N++;
+            //Add trainging data -- Run backprop
+            add_train(inp,inp+in_len);
+            //Mini batch weight update
+            i = (i+1)%minibatch_size;
+            if(i == 0){
+                update_wt();
             }
-            if(epoch%save_part == 0){
-                save(net,dest+"e"+epoch);
-            }
+        }
+        epoch++;
+        if(epoch == max_epochs){
+            save(dest);//concat(dest,"/res/e/",(char*)));
+            total_error /= (2*N);
+            cout<<"Total error: "<<total_error<<endl;
+            break;
+        }
+        //if(epoch%save_part == 0){
+        //    save(dest);//concat(dest,"/res/e/"));
+        //}
+        if(verbose){
+            total_error /= (2*N);
+            cout<<"Total error (epoch "<<epoch<<"): "<<total_error<<endl;
         }
     }
 }

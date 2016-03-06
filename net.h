@@ -19,6 +19,8 @@
 #define ONE         1
 #define ROOT        2
 
+#define LIM         0.00001
+
 #ifndef net_H_INCLUDED
 #define net_H_INCLUDED
 
@@ -29,6 +31,7 @@
     	float ** fan_in, ** del_in;
     	float ** fan_f, ** del_f;
     	float lrate;
+        float total_error;
     	int in_len, out_len;
     	int init_type;
 
@@ -36,18 +39,16 @@
 	    Net();
         void add_layer(int,int,int);
 	    void add_train(float *, float *);
-	    int get_in_len();
-	    int get_out_len();
-	    void set_init(int);
-	    void set_learn_rate(float);
         float * feed(float *);
         float * mul(float **,int,int,int,float *);
+        void update_wt();
+        //IO functions
+        void save(char *);
+        void load(char *);
+        void print();
+        //Train functions
+        void train(char *,char *,int,float,int,bool,int);
     };
-
     //Math functions
     float activation(float,int);
-    //Net IO functions
-    void save(Net,char *);
-    void load(Net *,char *);
-    void print(Net);
 #endif
