@@ -15,7 +15,7 @@ void Net::save(char * path){
     for(int i = 0; i < lay_count; i++)
         out<<lay_type[i]<<" ";
     out<<endl;
-    //Save fan in values
+    /*//Save fan in values
     for(int i = 0; i < lay_count; i++)
         for(int j = 0; j < node_count[i]; j++)
             out<<fan_in[i][j]<<" ";
@@ -24,7 +24,7 @@ void Net::save(char * path){
     for(int i = 0; i < lay_count; i++)
         for(int j = 0; j < node_count[i]; j++)
             out<<fan_f[i][j]<<" ";
-    out<<endl;
+    out<<endl;*/
     //Save weights
     for(int i = 0; i < lay_count-1; i++)
         for(int j = 0; j < node_count[i+1]; j++)
@@ -47,7 +47,7 @@ void Net::load(char * path){
     lay_type = new int[lay_count];
     for(int i = 0; i < lay_count; i++)
         in>>lay_type[i];
-    //Load fan in values
+    /*//Load fan in values
     fan_in = new float *[lay_count];
     for(int i = 0; i < lay_count; i++){
         fan_in[i] = new float[node_count[i]];
@@ -60,7 +60,7 @@ void Net::load(char * path){
         fan_f[i] = new float[node_count[i]];
         for(int j = 0; j < node_count[i]; j++)
             in>>fan_f[i][j];
-    }
+    }*/
     //Load weights
     wt = new float**[lay_count];
     for(int i = 0; i < lay_count-1; i++){

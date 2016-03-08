@@ -1,8 +1,8 @@
 #define MAX_LAYERS      20
 #define MAX_LAYER_LEN   10000
 
-#define BIAS_ON     0
-#define BIAS_OFF    1
+#define HIDDEN     0
+#define OUTPUT    1
 
 #define TANH        0
 #define SIGM        1

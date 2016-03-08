@@ -4,7 +4,7 @@
 using namespace std;
 
 float sigmoid(float x){
-    return 1/(1+exp(-x));
+    return 1.0/(1.0+exp(-x));
 }
 
 float tanh(float x){
@@ -15,14 +15,14 @@ float tanh(float x){
 float activation(float x, int type){
     float res;
     switch(type){
-        case SIGM: return 1/(1+exp(-x));
+        case SIGM: return 1.0/(1.0+exp(-x));
         case TANH: return tanh(x);
         case SMAX: //TODO: Softmax here
                    break;
         case SIGM_DER: res = sigmoid(x);
                        return res*(1-res);
         case TANH_DER: res = tanh(x);
-                       return (1-res*res);
+                       return (1-x*x);
     }
 }
 
