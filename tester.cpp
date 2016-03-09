@@ -4,25 +4,32 @@ using namespace std;
 
 int main(){
     Net net;
-    net.add_layer(1,BIAS_OFF,SIGM);
-    //net.add_layer(10,BIAS_OFF,SIGM);
-    net.add_layer(8,BIAS_OFF,SIGM);
-    //net.add_layer(10,BIAS_OFF,SIGM);
-    net.add_layer(1,BIAS_OFF,SIGM);
+    net.add_layer(1,HIDDEN,SIGM);
+    //net.add_layer(10,HIDDEN,SIGM);
+    net.add_layer(10,HIDDEN,SIGM);
+    //net.add_layer(10,HIDDEN,SIGM);
+    net.add_layer(1,OUTPUT,SIGM);
     
     net.train("./data", //Path to training data
-              "./model", //Path to destination folder
+              "./model_cos_sq_one_lobe", //Path to destination folder
               1, //Mini batch size (=1 for online learning)
-              0.005, //Learning rate
+              0.02, //Learning rate
               1, //Saves intermediate models every CYC batches later
               true, //Switch to turn verbose feature on/off
-              20 //Maximum number of epochs
+              20000 //Maximum number of epochs
              );
+    
+    net.load("./model_cos_sq_one_lobe");
 
-    //net.load("./model");
     for(int i = 0; i < 314; i++){
-        float inp = i/10;
+        float inp = i/100.0;
         cout<<*net.feed(&inp)<<", ";
     }
     cout<<endl;
+    /*for(int i = 0; i < 314; i+=(314/8)){
+        float inp = i/100.0;
+        cout<<inp<<", ";
+    }*/
+    cout<<endl;
+    //net.print();
 }
