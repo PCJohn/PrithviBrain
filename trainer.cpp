@@ -5,25 +5,12 @@
 #include "net.h"
 using namespace std;
 
-/*char * concat(int num,...){
-	va_list strings;
-	char * conc;
-	int i;
-
-	va_start(strings, num);
-	conc = (char *)malloc(MAX_PATH_LEN+1);
-
-	for(i = 0 ; i < num; i++)
-		strcat(conc, va_arg(strings, char *));
-
-	va_end(strings);
-	return conc;
-}*/
-
 void Net::train(char * path,
                 char * dest,
                 int minibatch_size,
                 float learn_rate,
+                bool adaptive_lrate,
+                float momentum,
                 int save_part,
                 bool verbose,
                 int max_epochs){
@@ -31,9 +18,11 @@ void Net::train(char * path,
     ofstream out(dest);
     char * line = new char[10000];
     float * inp = new float[100000];
-    int pos = 0, len, i = 0, N = 0, epoch;
+    float ** buff = new float*[BUFF_LEN];
+    int pos = 0, len, i = 0, N = 0, epoch, buff_pos = 0;
 
     lrate = learn_rate;
+    mtm = momentum;
     epoch = 0;
     while(1){
         in.clear();
@@ -44,8 +33,11 @@ void Net::train(char * path,
         in>>line;
         out_len = atoi(line);
         len = in_len+out_len;
+        line = new char[len+1];
+        inp = new float[len+1];
 
         N = 0;
+        prev_error = total_error;
         total_error = 0;
         while(in>>line){
             *inp++ = atof(line);
@@ -55,23 +47,30 @@ void Net::train(char * path,
             pos = 0;
             inp -= len;
             N++;
-            //Add trainging data -- Run backprop
+            
+            //buff[buff_pos] = inp;
+            //buff_pos++;
+            
             add_train(inp,inp+in_len);
-            //Mini batch weight update
+
             i = (i+1)%minibatch_size;
             if(i == 0){
-                update_wt();
+                update_wt(adaptive_lrate);
             }
         }
         epoch++;
-        if(epoch == max_epochs){
-            save(dest);//concat(dest,"/res/e/",(char*)));
+        //TODO: Check if prev > curr error here
+        if((epoch == max_epochs)){// || ((prev_error - total_error) < ERR_LIM)){
+            if(!updated)
+                update_wt(adaptive_lrate);
+            save(dest);
             total_error /= (2*N);
             cout<<"Total error: "<<total_error<<endl;
+            cout<<" _____ "<<(prev_error-total_error)<<endl;
             break;
         }
         //if(epoch%save_part == 0){
-        //    save(dest);//concat(dest,"/res/e/"));
+        //    save(dest);
         //}
         if(verbose){
             total_error /= (2*N);

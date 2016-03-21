@@ -8,12 +8,12 @@ float sigmoid(float x){
 }
 
 float tanh(float x){
-    float p = exp(x), n = exp(-x);
-    return (p+n)/(p-n);
+    float p = exp(2*x);
+    return (p-1.0)/(p+1.0);
 }
 
 float activation(float x, int type){
-    float res;
+    float res,p;
     switch(type){
         case SIGM: return 1.0/(1.0+exp(-x));
         case TANH: return tanh(x);
@@ -22,7 +22,7 @@ float activation(float x, int type){
         case SIGM_DER: res = sigmoid(x);
                        return res*(1-res);
         case TANH_DER: res = tanh(x);
-                       return (1-x*x);
+                       return (1-res*res);
     }
 }
 
